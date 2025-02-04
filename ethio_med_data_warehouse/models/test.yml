@@ -1,0 +1,12 @@
+version: 2
+
+models:
+  - name: transformed_data
+    description: "This model transforms raw Telegram message data by calculating message lengths."
+    columns:
+      - name: message_length
+        description: "Length of the message."
+        tests:
+          - not_null
+          - greater_than:
+              value: 50

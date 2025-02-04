@@ -1,0 +1,8 @@
+version: 2
+sources:
+  - name: ethio_med_data_warehouse
+    database: ethio_med   # Replace with your actual database name
+    schema: public                 # Or replace with your schema name
+    tables:
+      - name: telegram_messages
+        description: "Telegram messages table"

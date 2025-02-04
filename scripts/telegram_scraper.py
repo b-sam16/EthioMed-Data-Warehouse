@@ -54,23 +54,28 @@ async def scrape_channel(client, channel_username, all_messages):
         async for message in client.iter_messages(entity, limit=100, reverse=True):
             if message.id <= last_id:
                 continue
+            
+            media_path = None  # Default to None if no media
 
             # Save text messages for all channels in the same CSV
             if message.text:
-                all_messages.append([channel_title, channel_username, message.id, message.text, message.date])
+                all_messages.append([channel_title, channel_username, message.id, message.text, message.date, media_path])
 
             # Save images (only for specific channels)
             if message.media and hasattr(message.media, 'photo') and channel_username in ['@CheMeds', '@lobelia4cosmetics']:
                 # Set the file path for image download
                 if channel_username == '@CheMeds':
-                    file_path = os.path.join('./data/photos/CheMeds', f"{channel_username}_{message.id}.jpg")
+                    media_path = os.path.join('./data/photos/CheMeds', f"{channel_username}_{message.id}.jpg")
                 elif channel_username == '@lobelia4cosmetics':
-                    file_path = os.path.join('./data/photos/lobelia4cosmetics', f"{channel_username}_{message.id}.jpg")
+                    media_path = os.path.join('./data/photos/lobelia4cosmetics', f"{channel_username}_{message.id}.jpg")
 
                 # Download image using Telethon's download_media function
-                await client.download_media(message.media, file_path)
-                logger.info(f"Downloaded image for {channel_username} to {file_path}")
+                await client.download_media(message.media, media_path)
+                logger.info(f"Downloaded image for {channel_username} to {media_path}")
                 
+            # Append message with media path
+            all_messages.append([channel_title, channel_username, message.id, message.text, message.date, media_path])
+
             # Update the last processed ID after processing the message
             last_id = message.id
         save_last_processed_id(channel_username, last_id)
@@ -83,7 +88,7 @@ def save_messages_to_csv(all_messages):
     try:
         with open('./data/raw/scraped_data.csv', 'w', newline='', encoding='utf-8') as file:
             writer = csv.writer(file)
-            writer.writerow(['Channel Title', 'Channel Username', 'Message ID', 'Message', 'Date'])
+            writer.writerow(['Channel Title', 'Channel Username', 'Message ID', 'Message', 'Date','Media Path'])
             for message in all_messages:
                 writer.writerow(message)
         logger.info(f"Saved all messages to scraped_data.csv.")
